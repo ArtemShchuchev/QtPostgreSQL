@@ -3,10 +3,7 @@
 DataBase::DataBase(QObject *parent)
     : QObject{parent}
 {
-
     dataBase = new QSqlDatabase();
-
-
 }
 
 DataBase::~DataBase()
@@ -21,9 +18,7 @@ DataBase::~DataBase()
  */
 void DataBase::AddDataBase(QString driver, QString nameDB)
 {
-
     *dataBase = QSqlDatabase::addDatabase(driver, nameDB);
-
 }
 
 /*!
@@ -33,7 +28,6 @@ void DataBase::AddDataBase(QString driver, QString nameDB)
  */
 void DataBase::ConnectToDataBase(QVector<QString> data)
 {
-
     dataBase->setHostName(data[hostName]);
     dataBase->setDatabaseName(data[dbName]);
     dataBase->setUserName(data[login]);
@@ -47,19 +41,18 @@ void DataBase::ConnectToDataBase(QVector<QString> data)
     bool status;
     status = dataBase->open( );
     emit sig_SendStatusConnection(status);
-
 }
+
 /*!
  * \brief Метод производит отключение от БД
  * \param Имя БД
  */
 void DataBase::DisconnectFromDataBase(QString nameDb)
 {
-
     *dataBase = QSqlDatabase::database(nameDb);
     dataBase->close();
-
 }
+
 /*!
  * \brief Метод формирует запрос к БД.
  * \param request - SQL запрос

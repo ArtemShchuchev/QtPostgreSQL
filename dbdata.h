@@ -14,11 +14,10 @@ class DbData : public QDialog
 public:
     explicit DbData(QWidget *parent = nullptr);
     ~DbData();
-
+    QVector<QString> getData();
 
  signals:
-    void sig_sendData(QVector<QString> dbData);
-
+    //void sig_sendData(QVector<QString> dbData);
 
 private slots:
     void on_buttonBox_accepted();
@@ -26,7 +25,8 @@ private slots:
 private:
     Ui::DbData *ui;
     QVector<QString> data;
-
+    void dataToGUI();
+    void guiToData();
 };
 
 #endif // DBDATA_H

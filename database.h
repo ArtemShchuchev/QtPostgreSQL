@@ -3,8 +3,8 @@
 
 #include <QTableWidget>
 #include <QObject>
-
-
+#include <QSqlError>
+#include <QSqlDatabase>
 
 #define POSTGRE_DRIVER "QPSQL"
 #define DB_NAME "MyDB"
@@ -13,7 +13,8 @@
 #define NUM_DATA_FOR_CONNECT_TO_DB 5
 
 //Перечисление полей данных
-enum fieldsForConnect{
+enum fieldsForConnect
+{
     hostName = 0,
     dbName = 1,
     login = 2,
@@ -22,12 +23,11 @@ enum fieldsForConnect{
 };
 
 //Типы запросов
-enum requestType{
-
+enum requestType
+{
     requestAllFilms = 1,
     requestComedy   = 2,
     requestHorrors  = 3
-
 };
 
 
@@ -46,19 +46,12 @@ public:
     QSqlError GetLastError(void);
     void ConnectToDataBase(QVector<QString> dataForConnect);
 
-
 signals:
-
    void sig_SendDataFromDB(const QTableWidget *tableWg, int typeR);
    void sig_SendStatusConnection(bool);
 
-
-
 private:
-
     QSqlDatabase* dataBase;
-
-
 };
 
 #endif // DATABASE_H
