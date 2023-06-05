@@ -6,6 +6,7 @@
 #include <QSqlError>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QDebug>
 
 #define POSTGRE_DRIVER "QPSQL"
 #define DB_NAME "MyDB"
@@ -54,7 +55,7 @@ signals:
 
 private:
    //QSqlQuery* query;
-    QSqlDatabase* dataBase;
+    QSqlDatabase* db;
     /*
         film_id - ИД записи;
         title - название фильма;

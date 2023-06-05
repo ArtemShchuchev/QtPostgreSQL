@@ -45,8 +45,8 @@ private:
     void setupModel(const QString &tableName, const QStringList &headers);
     void showDataBase();
     QString tableName_str = "film";
-    QString request = "SELECT title, release_year, c.name  FROM film f "
-                      "JOIN film_category fc on f.film_id = fc.film_id "
-                      "JOIN category c on c.category_id  = fc.category_id";
+//    QString request = "SELECT title, release_year, c.name  FROM film f "
+//                      "JOIN film_category fc on f.film_id = fc.film_id "
+//                      "JOIN category c on c.category_id  = fc.category_id";
 };
 #endif // MAINWINDOW_H

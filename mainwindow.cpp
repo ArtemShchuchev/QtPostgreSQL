@@ -127,6 +127,7 @@ void MainWindow::setupModel(const QString& tableName, const QStringList& headers
 
     /* Устанавливаем названия колонок в таблице с сортировкой данных
      * */
+    qDebug() << model->database();
     qDebug() << "columnCount: " << model->columnCount();
     for (int i(0); i < model->columnCount(); ++i)
     {

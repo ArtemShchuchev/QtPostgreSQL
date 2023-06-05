@@ -3,12 +3,12 @@
 DataBase::DataBase(QObject *parent)
     : QObject{parent}
 {
-    dataBase = new QSqlDatabase();
+    db = new QSqlDatabase();
 }
 
 DataBase::~DataBase()
 {
-    delete dataBase;
+    delete db;
 }
 
 /*!
@@ -18,7 +18,7 @@ DataBase::~DataBase()
  */
 void DataBase::AddDataBase(QString driver, QString nameDB)
 {
-    *dataBase = QSqlDatabase::addDatabase(driver, nameDB);
+    *db = QSqlDatabase::addDatabase(driver, nameDB);
 }
 
 /*!
@@ -28,23 +28,24 @@ void DataBase::AddDataBase(QString driver, QString nameDB)
  */
 void DataBase::ConnectToDataBase(QVector<QString> data)
 {
-    dataBase->setHostName(data[hostName]);
-    dataBase->setDatabaseName(data[dbName]);
-    dataBase->setUserName(data[login]);
-    dataBase->setPassword(data[pass]);
-    dataBase->setPort(data[port].toInt());
+    db->setHostName(data[hostName]);
+    db->setDatabaseName(data[dbName]);
+    db->setUserName(data[login]);
+    db->setPassword(data[pass]);
+    db->setPort(data[port].toInt());
 
 
     ///Тут должен быть код ДЗ
 
-    qDebug() << "host name: " << dataBase->hostName()
-             << "\ndbName: " << dataBase->databaseName()
-             << "\nlogin: " << dataBase->userName()
-             << "\npassword: " << dataBase->password()
-             << "\nport: " << dataBase->port();
+    qDebug() << "host name: " << db->hostName()
+             << "\ndbName: " << db->databaseName()
+             << "\nlogin: " << db->userName()
+             << "\npassword: " << db->password()
+             << "\nport: " << db->port();
 
-
-    emit sig_SendStatusConnection(dataBase->open());
+    bool err = db->open();
+    if (err) qDebug() << "База подключена!";
+    emit sig_SendStatusConnection(err);
 }
 
 QStringList DataBase::getHeaders()
@@ -58,8 +59,8 @@ QStringList DataBase::getHeaders()
  */
 void DataBase::DisconnectFromDataBase(QString nameDb)
 {
-    *dataBase = QSqlDatabase::database(nameDb);
-    dataBase->close();
+    *db = QSqlDatabase::database(nameDb);
+    db->close();
 }
 
 /*!
@@ -87,5 +88,5 @@ void DataBase::RequestToDB(QString request)
  */
 QSqlError DataBase::GetLastError()
 {
-    return dataBase->lastError();
+    return db->lastError();
 }
