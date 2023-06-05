@@ -42,6 +42,8 @@ private:
     QSqlTableModel* model;
     QTableView *view;
 
+    void setupModel(const QString &tableName, const QStringList &headers);
+    void showDataBase();
     QString tableName_str = "film";
     QString request = "SELECT title, release_year, c.name  FROM film f "
                       "JOIN film_category fc on f.film_id = fc.film_id "

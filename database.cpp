@@ -37,10 +37,19 @@ void DataBase::ConnectToDataBase(QVector<QString> data)
 
     ///Тут должен быть код ДЗ
 
+    qDebug() << "host name: " << dataBase->hostName()
+             << "\ndbName: " << dataBase->databaseName()
+             << "\nlogin: " << dataBase->userName()
+             << "\npassword: " << dataBase->password()
+             << "\nport: " << dataBase->port();
 
-    bool status;
-    status = dataBase->open( );
-    emit sig_SendStatusConnection(status);
+
+    emit sig_SendStatusConnection(dataBase->open());
+}
+
+QStringList DataBase::getHeaders()
+{
+    return headers;
 }
 
 /*!
@@ -61,6 +70,14 @@ void DataBase::DisconnectFromDataBase(QString nameDb)
 void DataBase::RequestToDB(QString request)
 {
     ///Тут должен быть код ДЗ
+    QSqlQuery query;
+    //*query = QSqlQuery(*dataBase);
+    if (query.exec(request) == false) qDebug() << query.lastError();
+    else qDebug() << "Запрос выполнен!";
+    while(query.next())
+    {
+        qDebug() << query.value(0).toString() << " " << query.value(1).toString();
+    }
 
     //emit sig_SendDataFromDB(const QTableWidget *tableWg, int typeR);
 }

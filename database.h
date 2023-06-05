@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QSqlError>
 #include <QSqlDatabase>
+#include <QSqlQuery>
 
 #define POSTGRE_DRIVER "QPSQL"
 #define DB_NAME "MyDB"
@@ -45,13 +46,45 @@ public:
     void RequestToDB(QString request);
     QSqlError GetLastError(void);
     void ConnectToDataBase(QVector<QString> dataForConnect);
+    QStringList getHeaders();
 
 signals:
    void sig_SendDataFromDB(const QTableWidget *tableWg, int typeR);
    void sig_SendStatusConnection(bool);
 
 private:
+   //QSqlQuery* query;
     QSqlDatabase* dataBase;
+    /*
+        film_id - ИД записи;
+        title - название фильма;
+        description - описание фильма;
+        release_year - год выпуска;
+        language_id - язык фильма, внешний ключ(ВК)
+        original_language_id - оригинальный язык фильма, ВК
+        rental_duration - доступная продолжительность аренды фильма, дней;
+        rental_rate - цена в $ за день;
+        length - продолжительность фильма, мин;
+        replacement_cost - цена замены фильма;
+        rating - возрастной рейтинг фильма;
+        last_update - служебная информация, последнее одновление записи;
+        special_features - дополнительные особенности фильма;
+        fulltext - ключевые слова для поиска фильма.
+    */
+    QStringList headers = {"ИД",
+                           "Название фильма",
+                           "Описание фильма",
+                           "Год выпуска",
+                           "Язык фильма",
+                           "Оригинальный язык",
+                           "Доступная аренда, дней",
+                           "цена, $/день",
+                           "Время фильма, мин",
+                           "Цена замены фильма",
+                           "Возрастной рейтинг",
+                           "Служебная инфо",
+                           "Дополнительно",
+                           "Ключевые слова"};
 };
 
 #endif // DATABASE_H
