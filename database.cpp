@@ -60,9 +60,9 @@ void DataBase::DisconnectFromDataBase(QString nameDb)
  */
 void DataBase::RequestToDB(QString request)
 {
-
     ///Тут должен быть код ДЗ
 
+    //emit sig_SendDataFromDB(const QTableWidget *tableWg, int typeR);
 }
 
 /*!

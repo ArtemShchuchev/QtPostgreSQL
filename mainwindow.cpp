@@ -17,6 +17,9 @@ MainWindow::MainWindow(QWidget *parent)
     dataDb = new DbData(this);
     dataBase = new DataBase(this);
     msg = new QMessageBox(this);
+    //model = new QSqlTableModel(this);
+    //view = new QTableView(this);
+    //view->setModel(model);
 
     /*
      * Добавим БД используя стандартный драйвер PSQL и зададим имя.
@@ -82,12 +85,65 @@ void MainWindow::on_act_connect_triggered()
 
 /*!
  * \brief Обработчик кнопки "Получить"
+ *
+ * requestAllFilms = 1,
+ * requestComedy   = 2,
+ * requestHorrors  = 3
  */
 void MainWindow::on_pb_request_clicked()
 {
-
     ///Тут должен быть код ДЗ
+//    QString request;
+//    switch (ui->cb_category->count())
+//    {
+//    case requestAllFilms:
+//        request = "SELECT title, release_year FROM " + tableName_str;
+//        break;
+//    case requestComedy:
+//        break;
+//    case requestHorrors:
+//        break;
+//    default:
+//        break;
+//    }
+//    dataBase->RequestToDB(request);
 
+    model = new QSqlTableModel();
+    model->setTable(tableName_str);
+    //model->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    //model->select();
+    //model->setFilter(); // фильтрация WHERE
+    model->setHeaderData(1, Qt::Horizontal, tr("Название"));
+    model->setHeaderData(3, Qt::Horizontal, tr("Год выпуска"));
+    // Устанавливаем сортировку по возрастанию данных по нулевой колонке
+    //model->setSort(0,Qt::AscendingOrder);
+
+
+    //view = new QTableView(this);
+    //view->setModel(model);
+
+    //ui->tableView->update();
+
+    //ui->tableView->show();
+
+
+
+    ui->tableView->setModel(model);     // Устанавливаем модель на TableView
+
+    ui->tableView->setColumnHidden(0, true);    // Скрываем колонку с id записей
+    // Разрешаем выделение строк
+    //ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    // Устанавливаем режим выделения лишь одно строки в таблице
+    //ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    // Устанавливаем размер колонок по содержимому
+    ui->tableView->resizeColumnsToContents();
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->tableView->horizontalHeader()->setStretchLastSection(true);
+
+    model->select(); // Делаем выборку данных из таблицы
+    ui->tableView->show();
+
+    qDebug() << "нажатие обработано!";
 }
 
 /*!
@@ -100,7 +156,7 @@ void MainWindow::ScreenDataFromDB(const QTableWidget *widget, int typeRequest)
 
     ///Тут должен быть код ДЗ
 
-
+    view->show();
 }
 
 /*!

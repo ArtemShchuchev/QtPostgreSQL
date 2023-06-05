@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QtConcurrent>
+#include <QSqlTableModel>
 #include "database.h"
 #include "dbdata.h"
 
@@ -38,7 +39,10 @@ private:
     DbData* dataDb;
     DataBase* dataBase;
     QMessageBox* msg;
+    QSqlTableModel* model;
+    QTableView *view;
 
+    QString tableName_str = "film";
     QString request = "SELECT title, release_year, c.name  FROM film f "
                       "JOIN film_category fc on f.film_id = fc.film_id "
                       "JOIN category c on c.category_id  = fc.category_id";
