@@ -41,10 +41,10 @@ class DataBase : public QObject
 public:
     explicit DataBase(QObject *parent = nullptr);
     ~DataBase();
-
     void AddDataBase(QString driver, QString nameDB = "");
     void DisconnectFromDataBase(QString nameDb = "");
     void RequestToDB(QString request);
+    //void ReadAnswerFromDB( int answerType );
     QSqlError GetLastError(void);
     void ConnectToDataBase(QVector<QString> dataForConnect);
     QStringList getHeaders();
@@ -52,9 +52,9 @@ public:
 signals:
    void sig_SendDataFromDB(const QTableWidget *tableWg, int typeR);
    void sig_SendStatusConnection(bool);
+   //void sig_SendStatusRequest(QSqlError* err);
 
 private:
-   //QSqlQuery* query;
     QSqlDatabase* db;
     /*
         film_id - ИД записи;
@@ -86,6 +86,9 @@ private:
                            "Служебная инфо",
                            "Дополнительно",
                            "Ключевые слова"};
+    QSqlQuery* query;
+    //QTableWidget* tableWidget;
+    QSqlError* err;
 };
 
 #endif // DATABASE_H

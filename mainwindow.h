@@ -25,6 +25,7 @@ public:
 public slots:
     void ScreenDataFromDB(const QTableWidget *widget, int typeRequest);
     void ReceiveStatusConnectionToDB(bool status);
+    void ReceiveStatusRequestToDB(QSqlError* err);
 
 private slots:
     void on_act_addData_triggered();

@@ -44,8 +44,6 @@ void DbData::on_buttonBox_accepted()
 {
     //Добавляем данные в контейнер
     guiToData();
-
-    //emit sig_sendData(data);  // передаем в главное окно
 }
 
 void DbData::dataToGUI()
