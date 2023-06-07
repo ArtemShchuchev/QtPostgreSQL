@@ -14,7 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
      * Выделим память под необходимые объекты. Все они наследники
      * QObject, поэтому воспользуемся иерархией.
     */
-    dataDb = new DbData(this);
+    connectData = new DbData(this); // данные о соединении с БД
     dataBase = new DataBase(this);
     msg = new QMessageBox(this);
     //model = new QSqlTableModel(this);
@@ -26,6 +26,19 @@ MainWindow::MainWindow(QWidget *parent)
     */
     dataBase->AddDataBase(POSTGRE_DRIVER, DB_NAME);
 
+/*
+ * Сейчас ни какие кнопки не работают!
+ * Теоретически он должен показать таблицу БД "film".
+ * Практически он ее у меня не открывает. ((
+ */
+
+    dataBase->ConnectToDataBase(connectData->getData());
+
+
+    setupModel("film", dataBase->getHeaders());
+    showDataBase();
+
+
     /*
      * Соединяем сигнал, который передает ответ от БД с методом, который отображает ответ в ПИ
      */
@@ -34,8 +47,9 @@ MainWindow::MainWindow(QWidget *parent)
     /*
      *  Сигнал для подключения к БД
      */
+    // сигнал о статусе сообщения, связываю со слотом изменения ПИ
     connect(dataBase, &DataBase::sig_SendStatusConnection, this, &MainWindow::ReceiveStatusConnectionToDB);
-    //connect(dataBase, &DataBase::sig_SendStatusRequest, this, &MainWindow::ReceiveStatusRequestToDB);
+    connect(dataBase, &DataBase::sig_SendStatusRequest, this, &MainWindow::ReceiveStatusRequestToDB);
 }
 
 MainWindow::~MainWindow()
@@ -45,15 +59,19 @@ MainWindow::~MainWindow()
 
 /*!
  * @brief Слот отображает форму для ввода данных подключения к БД
+ *
+ * клик по всплывающему меню "Ввести данные"
  */
 void MainWindow::on_act_addData_triggered()
 {
-    //Отобразим диалоговое окно. Какой метод нужно использовать?
-    dataDb->show();
+    // Отобразим диалоговое окно. Какой метод нужно использовать?
+    connectData->show();
 }
 
 /*!
  * @brief Слот выполняет подключение к БД. И отображает ошибки.
+ *
+ * клик по всплывающему меню "Подключиться"
  */
 void MainWindow::on_act_connect_triggered()
 {
@@ -69,8 +87,10 @@ void MainWindow::on_act_connect_triggered()
        ui->lb_statusConnect->setText("Подключение");
        ui->lb_statusConnect->setStyleSheet("color : black");
 
-       auto conn = [&]{dataBase->ConnectToDataBase(dataDb->getData());};
-       auto runDb = QtConcurrent::run(conn);
+       dataBase->ConnectToDataBase(connectData->getData());
+
+//       auto conn = [this]{dataBase->ConnectToDataBase(connectData->getData());};
+//       auto runDb = QtConcurrent::run(conn);
     }
     else
     {
@@ -80,7 +100,6 @@ void MainWindow::on_act_connect_triggered()
         ui->lb_statusConnect->setStyleSheet("color:red");
         ui->pb_request->setEnabled(false);
     }
-
 }
 
 /*!
@@ -99,28 +118,14 @@ void MainWindow::on_pb_request_clicked()
      * и ужасы
     */
     ///Тут должен быть код ДЗ
-    QString request;
-    switch (ui->cb_category->count())
-    {
-    case requestAllFilms:
-        request = "SELECT title, release_year FROM " + tableName_str;
-        break;
-    case requestComedy:
-        break;
-    case requestHorrors:
-        break;
-    default:
-        break;
-    }
+//    auto req = [this](int reqIdx){dataBase->RequestToDB(reqIdx);};
+//    auto future = QtConcurrent::run(req, ui->cb_category->currentIndex());
+//    future.waitForFinished();
 
-    auto req = [&]{dataBase->RequestToDB(request);};
-    QtConcurrent::run(req);
-    //dataBase->RequestToDB(request);
-
-    setupModel(tableName_str, dataBase->getHeaders());
+    setupModel("film", dataBase->getHeaders());
     showDataBase();
 
-    qDebug() << "нажатие обработано!";
+//    qDebug() << "нажатие обработано!";
 }
 
 void MainWindow::setupModel(const QString& tableName, const QStringList& headers)
@@ -129,19 +134,20 @@ void MainWindow::setupModel(const QString& tableName, const QStringList& headers
      * с установкой имени таблицы в базе данных, по которому
      * будет производится обращение в таблице
      * */
-    model = new QSqlTableModel(this);
+
+    model = new QSqlTableModel();
     model->setTable(tableName);
+    QMessageBox::critical(0, tr("Error: QSqlTableModel!"),  model->lastError().text());
     //model->setEditStrategy(QSqlTableModel::OnManualSubmit);
     //model->setFilter(); // фильтрация WHERE
 
     /* Устанавливаем названия колонок в таблице с сортировкой данных
      * */
-    qDebug() << model->database();
     qDebug() << "columnCount: " << model->columnCount();
     for (int i(0); i < model->columnCount(); ++i)
     {
         model->setHeaderData(i, Qt::Horizontal, headers[i]);
-        qDebug() << "Haeder: " << headers[i];
+        //qDebug() << "Haeder: " << headers[i];
     }
     // Устанавливаем сортировку по возрастанию данных по нулевой колонке
     model->setSort(0, Qt::AscendingOrder);
@@ -161,14 +167,15 @@ void MainWindow::showDataBase()
     ui->tableView->horizontalHeader()->setStretchLastSection(true);
 
     model->select(); // Делаем выборку данных из таблицы
+    //ui->tableView->show();
 }
 
 /*!
- * \brief Слот отображает значение в QTableWidget
- * \param widget
+ * \brief Слот отображает значение в QTableView
+ * \param tabView
  * \param typeRequest
  */
-void MainWindow::ScreenDataFromDB(const QTableWidget *widget, int typeRequest)
+void MainWindow::ScreenDataFromDB(const QTableView *tabView, int typeRequest)
 {
 
     ///Тут должен быть код ДЗ
@@ -218,6 +225,11 @@ void MainWindow::ScreenDataFromDB(const QTableWidget *widget, int typeRequest)
  */
 void MainWindow::ReceiveStatusConnectionToDB(bool status)
 {
+    /*
+        Сделал попытку подключения и через сигнал передал
+        сюда статус подключения.
+        Меняю ПИ в соответствии со статусом подключения.
+    */
     if(status)
     {
         ui->act_connect->setText("Отключиться");
@@ -247,7 +259,7 @@ void MainWindow::ReceiveStatusRequestToDB(QSqlError* err)
         msg->setText(err->text());
         msg->exec();
     }
-    //else dataBase->ReadAnswerFromDB(requestAllFilms);
+    else dataBase->ReadAnswerFromDB(ui->cb_category->currentIndex());
 }
 
 

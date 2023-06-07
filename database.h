@@ -1,12 +1,15 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include <QTableWidget>
+//#include <QTableWidget>
+#include <QTableView>
 #include <QObject>
 #include <QSqlError>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QDebug>
+#include <QtConcurrent>
+#include <QMessageBox>
 
 #define POSTGRE_DRIVER "QPSQL"
 #define DB_NAME "MyDB"
@@ -25,6 +28,9 @@ enum fieldsForConnect
 };
 
 //Типы запросов
+// Я бы начал с 0, начинать с 1цы - не логично
+// 0 - жанр не имеет значения
+// цифры - конкретный жанр
 enum requestType
 {
     requestAllFilms = 1,
@@ -43,19 +49,20 @@ public:
     ~DataBase();
     void AddDataBase(QString driver, QString nameDB = "");
     void DisconnectFromDataBase(QString nameDb = "");
-    void RequestToDB(QString request);
-    //void ReadAnswerFromDB( int answerType );
+    void RequestToDB(int requestIndex);
+    void ReadAnswerFromDB( int requestIndex );
     QSqlError GetLastError(void);
     void ConnectToDataBase(QVector<QString> dataForConnect);
     QStringList getHeaders();
 
 signals:
-   void sig_SendDataFromDB(const QTableWidget *tableWg, int typeR);
+   void sig_SendDataFromDB(const QTableView *tableView, int typeR);
    void sig_SendStatusConnection(bool);
-   //void sig_SendStatusRequest(QSqlError* err);
+   void sig_SendStatusRequest(QSqlError* err);
 
 private:
     QSqlDatabase* db;
+    QString tableName_str = "film";
     /*
         film_id - ИД записи;
         title - название фильма;
@@ -88,7 +95,7 @@ private:
                            "Ключевые слова"};
     QSqlQuery* query;
     //QTableWidget* tableWidget;
-    QSqlError* err;
+    QTableView* tableView;
 };
 
 #endif // DATABASE_H

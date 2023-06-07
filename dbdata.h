@@ -3,10 +3,11 @@
 
 #include <QDialog>
 
-namespace Ui {
-class DbData;
-}
+namespace Ui {class DbData;}
 
+/*
+    Класс содержит инфо о подключении к БД (логин, пароль...)
+*/
 class DbData : public QDialog
 {
     Q_OBJECT
@@ -14,17 +15,16 @@ class DbData : public QDialog
 public:
     explicit DbData(QWidget *parent = nullptr);
     ~DbData();
-    QVector<QString> getData();
+    QVector<QString> getData() const;
 
  signals:
-    //void sig_sendData(QVector<QString> dbData);
 
 private slots:
     void on_buttonBox_accepted();
 
 private:
     Ui::DbData *ui;
-    QVector<QString> data;
+    QVector<QString> connectData;
     void dataToGUI();
     void guiToData();
 };

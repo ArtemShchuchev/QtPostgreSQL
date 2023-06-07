@@ -10,7 +10,7 @@ DbData::DbData(QWidget *parent) :
 
     //Ресайзим вектор значений, по количеству полей необходимых для
     //подключения к БД
-    data.resize(NUM_DATA_FOR_CONNECT_TO_DB);
+    connectData.resize(NUM_DATA_FOR_CONNECT_TO_DB);
     /*
         Имя хоста: 981757-ca08998.tmweb.ru
         Имя БД: netology_cpp
@@ -18,11 +18,11 @@ DbData::DbData(QWidget *parent) :
         Логин: netology_usr_cpp
         Пароль: CppNeto3
     */
-    data[hostName] = "981757-ca08998.tmweb.ru";
-    data[dbName] = "netology_cpp";
-    data[login] = "netology_usr_cpp";
-    data[pass] = "CppNeto3";
-    data[port] = "5432";
+    connectData[hostName] = "981757-ca08998.tmweb.ru";
+    connectData[dbName] = "netology_cpp";
+    connectData[login] = "netology_usr_cpp";
+    connectData[pass] = "CppNeto3";
+    connectData[port] = "5432";
 
     dataToGUI();
 }
@@ -32,9 +32,9 @@ DbData::~DbData()
     delete ui;
 }
 
-QVector<QString> DbData::getData()
+QVector<QString> DbData::getData() const
 {
-    return data;
+    return connectData;
 }
 
 /*!
@@ -48,19 +48,19 @@ void DbData::on_buttonBox_accepted()
 
 void DbData::dataToGUI()
 {
-    ui->le_host->setText(data[hostName]);
-    ui->le_dbName->setText(data[dbName]);
-    ui->le_login->setText(data[login]);
-    ui->le_pass->setText(data[pass]);
-    ui->spB_port->setValue(data[port].toInt());
+    ui->le_host->setText(connectData[hostName]);
+    ui->le_dbName->setText(connectData[dbName]);
+    ui->le_login->setText(connectData[login]);
+    ui->le_pass->setText(connectData[pass]);
+    ui->spB_port->setValue(connectData[port].toInt());
 }
 
 void DbData::guiToData()
 {
-    data[hostName] = ui->le_host->text();
-    data[dbName] = ui->le_dbName->text();
-    data[login] = ui->le_login->text();
-    data[pass] = ui->le_pass->text();
-    data[port] = ui->spB_port->text();
+    connectData[hostName] = ui->le_host->text();
+    connectData[dbName] = ui->le_dbName->text();
+    connectData[login] = ui->le_login->text();
+    connectData[pass] = ui->le_pass->text();
+    connectData[port] = ui->spB_port->text();
 }
 

@@ -23,7 +23,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void ScreenDataFromDB(const QTableWidget *widget, int typeRequest);
+    void ScreenDataFromDB(const QTableView *tabView, int typeRequest);
     void ReceiveStatusConnectionToDB(bool status);
     void ReceiveStatusRequestToDB(QSqlError* err);
 
@@ -37,15 +37,14 @@ signals:
 
 private:
     Ui::MainWindow* ui;
-    DbData* dataDb;
+    DbData* connectData;
     DataBase* dataBase;
     QMessageBox* msg;
     QSqlTableModel* model;
-    QTableView *view;
+    //QTableView *view;
 
     void setupModel(const QString &tableName, const QStringList &headers);
     void showDataBase();
-    QString tableName_str = "film";
 //    QString request = "SELECT title, release_year, c.name  FROM film f "
 //                      "JOIN film_category fc on f.film_id = fc.film_id "
 //                      "JOIN category c on c.category_id  = fc.category_id";
