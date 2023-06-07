@@ -54,6 +54,7 @@ public:
     QSqlError GetLastError(void);
     void ConnectToDataBase(QVector<QString> dataForConnect);
     QStringList getHeaders();
+    QSqlDatabase& getMyDb() const;
 
 signals:
    void sig_SendDataFromDB(const QTableView *tableView, int typeR);

@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->lb_statusConnect->setStyleSheet("color:red");
     ui->pb_request->setEnabled(false);
+    ui->pb_clear->setEnabled(false);
 
     /*
      * Выделим память под необходимые объекты. Все они наследники
@@ -16,37 +17,16 @@ MainWindow::MainWindow(QWidget *parent)
     */
     connectData = new DbData(this); // данные о соединении с БД
     dataBase = new DataBase(this);
-    msg = new QMessageBox(this);
-    //model = new QSqlTableModel(this);
-    //view = new QTableView(this);
-    //view->setModel(model);
 
     /*
      * Добавим БД используя стандартный драйвер PSQL и зададим имя.
     */
     dataBase->AddDataBase(POSTGRE_DRIVER, DB_NAME);
 
-/*
- * Сейчас ни какие кнопки не работают!
- * Теоретически он должен показать таблицу БД "film".
- * Практически он ее у меня не открывает. ((
- */
+    // Соединяем сигнал, который передает ответ от БД с методом, который отображает ответ в ПИ
+    connect(dataBase, &DataBase::sig_SendDataFromDB, this, &MainWindow::ScreenDataFromDB);
 
-    dataBase->ConnectToDataBase(connectData->getData());
-
-
-    setupModel("film", dataBase->getHeaders());
-    showDataBase();
-
-
-    /*
-     * Соединяем сигнал, который передает ответ от БД с методом, который отображает ответ в ПИ
-     */
-     connect(dataBase, &DataBase::sig_SendDataFromDB, this, &MainWindow::ScreenDataFromDB);
-
-    /*
-     *  Сигнал для подключения к БД
-     */
+    // Сигнал для подключения к БД
     // сигнал о статусе сообщения, связываю со слотом изменения ПИ
     connect(dataBase, &DataBase::sig_SendStatusConnection, this, &MainWindow::ReceiveStatusConnectionToDB);
     connect(dataBase, &DataBase::sig_SendStatusRequest, this, &MainWindow::ReceiveStatusRequestToDB);
@@ -88,9 +68,6 @@ void MainWindow::on_act_connect_triggered()
        ui->lb_statusConnect->setStyleSheet("color : black");
 
        dataBase->ConnectToDataBase(connectData->getData());
-
-//       auto conn = [this]{dataBase->ConnectToDataBase(connectData->getData());};
-//       auto runDb = QtConcurrent::run(conn);
     }
     else
     {
@@ -118,15 +95,23 @@ void MainWindow::on_pb_request_clicked()
      * и ужасы
     */
     ///Тут должен быть код ДЗ
-//    auto req = [this](int reqIdx){dataBase->RequestToDB(reqIdx);};
-//    auto future = QtConcurrent::run(req, ui->cb_category->currentIndex());
-//    future.waitForFinished();
+    auto req = [this](int reqIdx){dataBase->RequestToDB(reqIdx);};
+    auto future = QtConcurrent::run(req, ui->cb_category->currentIndex());
+    future.waitForFinished();
 
     setupModel("film", dataBase->getHeaders());
     showDataBase();
-
-//    qDebug() << "нажатие обработано!";
 }
+
+/*!
+ * \brief Обработчик кнопки "Очистить"
+ */
+void MainWindow::on_pb_clear_clicked()
+{
+    ui->tableView->setModel(0);
+    ui->pb_clear->setEnabled(false);
+}
+
 
 void MainWindow::setupModel(const QString& tableName, const QStringList& headers)
 {
@@ -135,15 +120,12 @@ void MainWindow::setupModel(const QString& tableName, const QStringList& headers
      * будет производится обращение в таблице
      * */
 
-    model = new QSqlTableModel();
+    model = new QSqlTableModel(this, dataBase->getMyDb());
     model->setTable(tableName);
-    QMessageBox::critical(0, tr("Error: QSqlTableModel!"),  model->lastError().text());
-    //model->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    model->setEditStrategy(QSqlTableModel::OnManualSubmit);
     //model->setFilter(); // фильтрация WHERE
 
-    /* Устанавливаем названия колонок в таблице с сортировкой данных
-     * */
-    qDebug() << "columnCount: " << model->columnCount();
+    // Устанавливаем названия колонок в таблице с сортировкой данных
     for (int i(0); i < model->columnCount(); ++i)
     {
         model->setHeaderData(i, Qt::Horizontal, headers[i]);
@@ -156,7 +138,7 @@ void MainWindow::setupModel(const QString& tableName, const QStringList& headers
 void MainWindow::showDataBase()
 {
     ui->tableView->setModel(model);             // Устанавливаем модель на TableView
-    ui->tableView->setColumnHidden(0, true);    // Скрываем колонку с id записей
+    ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
     // Разрешаем выделение строк
     ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     // Устанавливаем режим выделения лишь одной строки в таблице
@@ -167,7 +149,7 @@ void MainWindow::showDataBase()
     ui->tableView->horizontalHeader()->setStretchLastSection(true);
 
     model->select(); // Делаем выборку данных из таблицы
-    //ui->tableView->show();
+    ui->pb_clear->setEnabled(true);
 }
 
 /*!
@@ -239,12 +221,16 @@ void MainWindow::ReceiveStatusConnectionToDB(bool status)
     }
     else
     {
+
         dataBase->DisconnectFromDataBase(DB_NAME);
-        msg->setIcon(QMessageBox::Critical);
-        msg->setText(dataBase->GetLastError().text());
         ui->lb_statusConnect->setText("Отключено");
         ui->lb_statusConnect->setStyleSheet("color:red");
-        msg->exec();
+
+        QMessageBox::critical(0, tr("Ошибка подключения к БД!"), "База данных \""
+                              + connectData->getData().at(dbName)
+                              + "\" - НЕ подключена!\n\n"
+                              + dataBase->GetLastError().text(),
+                              QMessageBox::StandardButton::Close);
     }
 }
 
@@ -256,11 +242,8 @@ void MainWindow::ReceiveStatusRequestToDB(QSqlError* err)
 {
     if(err->type() != QSqlError::NoError)
     {
-        msg->setText(err->text());
-        msg->exec();
+        QMessageBox::critical(0, tr("Ошибка запроса к БД!"), err->text(),
+                              QMessageBox::StandardButton::Close);
     }
     else dataBase->ReadAnswerFromDB(ui->cb_category->currentIndex());
 }
-
-
-
