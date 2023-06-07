@@ -56,9 +56,8 @@ void DataBase::ConnectToDataBase(QVector<QString> data)
 
     ///Тут должен быть код ДЗ
     //Для подключения к БД используется метод open(), который возвращает true в случае успешного подключения.
-    auto connection = [this]{ return db->open(); };
-    auto sendStatus = [=](bool status){ emit sig_SendStatusConnection(status); };
-    auto future = QtConcurrent::run(connection).then(sendStatus);
+    auto connection = [this]{ emit sig_SendStatusConnection(db->open()); };
+    auto future = QtConcurrent::run(connection);
 }
 
 QStringList DataBase::getHeaders()

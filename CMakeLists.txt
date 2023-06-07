@@ -52,16 +52,23 @@ else()
     endif()
 endif()
 
-
-target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/PG_Libs)
-target_link_libraries(08_PreDataBase PRIVATE    Qt${QT_VERSION_MAJOR}::Widgets
-                                                Qt${QT_VERSION_MAJOR}::Concurrent
-                                                Qt${QT_VERSION_MAJOR}::Sql
-                                                libcrypto-3-x64
-                                                libiconv-2
-                                                libintl-9
-                                                libpq
-                                                libssl-3-x64)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")    # Для Windows
+    target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/PG_Libs)
+    target_link_libraries(08_PreDataBase PRIVATE    Qt${QT_VERSION_MAJOR}::Widgets
+                                                    Qt${QT_VERSION_MAJOR}::Concurrent
+                                                    Qt${QT_VERSION_MAJOR}::Sql
+                                                    libcrypto-3-x64
+                                                    libiconv-2
+                                                    libintl-9
+                                                    libpq
+                                                    libssl-3-x64)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")  # Для Linux
+    target_link_libraries(08_PreDataBase PRIVATE    Qt${QT_VERSION_MAJOR}::Widgets
+                                                    Qt${QT_VERSION_MAJOR}::Concurrent
+                                                    Qt${QT_VERSION_MAJOR}::Sql)
+else()
+    message(FATAL_ERROR "Unknow OS")
+endif()
 
 
 set_target_properties(08_PreDataBase PROPERTIES
