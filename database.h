@@ -1,7 +1,7 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-//#include <QTableWidget>
+#include <QSqlTableModel>
 #include <QTableView>
 #include <QObject>
 #include <QSqlError>
@@ -47,22 +47,23 @@ class DataBase : public QObject
 public:
     explicit DataBase(QObject *parent = nullptr);
     ~DataBase();
-    void AddDataBase(QString driver, QString nameDB = "");
-    void DisconnectFromDataBase(QString nameDb = "");
+    void AddDataBase(const QString& driver, const QString& nameDB = "");
+    void DisconnectFromDataBase(const QString& nameDb = "");
     void RequestToDB(int requestIndex);
-    void ReadAnswerFromDB( int requestIndex );
+    void ReadAnswerFromDB(int requestIndex);
     QSqlError GetLastError(void);
-    void ConnectToDataBase(QVector<QString> dataForConnect);
-    QStringList getHeaders();
-    QSqlDatabase& getMyDb() const;
+    void ConnectToDataBase(const QVector<QString>& dataForConnect);
 
 signals:
-   void sig_SendDataFromDB(const QTableView *tableView, int typeR);
+   void sig_SendDataFromDB(QSqlTableModel* model, int typeR);
    void sig_SendStatusConnection(bool);
-   void sig_SendStatusRequest(QSqlError* err);
+   void sig_SendStatusRequest(QSqlError err);
 
 private:
     QSqlDatabase* db;
+    QSqlTableModel* model;
+    QSqlQueryModel* qModel;
+
     QString tableName_str = "film";
     /*
         film_id - ИД записи;
@@ -80,7 +81,7 @@ private:
         special_features - дополнительные особенности фильма;
         fulltext - ключевые слова для поиска фильма.
     */
-    QStringList headers = {"ИД",
+    QStringList headers = {"ид",
                            "Название фильма",
                            "Описание фильма",
                            "Год выпуска",
@@ -94,9 +95,6 @@ private:
                            "Служебная инфо",
                            "Дополнительно",
                            "Ключевые слова"};
-    QSqlQuery* query;
-    //QTableWidget* tableWidget;
-    QTableView* tableView;
 };
 
 #endif // DATABASE_H

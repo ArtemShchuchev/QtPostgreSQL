@@ -18,10 +18,6 @@ MainWindow::MainWindow(QWidget *parent)
     connectData = new DbData(this); // данные о соединении с БД
     dataBase = new DataBase(this);
 
-    /*
-     * Добавим БД используя стандартный драйвер PSQL и зададим имя.
-    */
-    dataBase->AddDataBase(POSTGRE_DRIVER, DB_NAME);
 
     // Соединяем сигнал, который передает ответ от БД с методом, который отображает ответ в ПИ
     connect(dataBase, &DataBase::sig_SendDataFromDB, this, &MainWindow::ScreenDataFromDB);
@@ -99,8 +95,8 @@ void MainWindow::on_pb_request_clicked()
     auto future = QtConcurrent::run(req, ui->cb_category->currentIndex());
     future.waitForFinished();
 
-    setupModel("film", dataBase->getHeaders());
-    showDataBase();
+    //setupModel("film", dataBase->getHeaders());
+    //showDataBase();
 }
 
 /*!
@@ -109,47 +105,8 @@ void MainWindow::on_pb_request_clicked()
 void MainWindow::on_pb_clear_clicked()
 {
     ui->tableView->setModel(0);
+    //ui->tableView->setViewport(0);
     ui->pb_clear->setEnabled(false);
-}
-
-
-void MainWindow::setupModel(const QString& tableName, const QStringList& headers)
-{
-    /* Производим инициализацию модели представления данных
-     * с установкой имени таблицы в базе данных, по которому
-     * будет производится обращение в таблице
-     * */
-
-    model = new QSqlTableModel(this, dataBase->getMyDb());
-    model->setTable(tableName);
-    model->setEditStrategy(QSqlTableModel::OnManualSubmit);
-    //model->setFilter(); // фильтрация WHERE
-
-    // Устанавливаем названия колонок в таблице с сортировкой данных
-    for (int i(0); i < model->columnCount(); ++i)
-    {
-        model->setHeaderData(i, Qt::Horizontal, headers[i]);
-        //qDebug() << "Haeder: " << headers[i];
-    }
-    // Устанавливаем сортировку по возрастанию данных по нулевой колонке
-    model->setSort(0, Qt::AscendingOrder);
-}
-
-void MainWindow::showDataBase()
-{
-    ui->tableView->setModel(model);             // Устанавливаем модель на TableView
-    ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
-    // Разрешаем выделение строк
-    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    // Устанавливаем режим выделения лишь одной строки в таблице
-    ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
-    // Устанавливаем размер колонок по содержимому
-    ui->tableView->resizeColumnsToContents();
-    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui->tableView->horizontalHeader()->setStretchLastSection(true);
-
-    model->select(); // Делаем выборку данных из таблицы
-    ui->pb_clear->setEnabled(true);
 }
 
 /*!
@@ -157,7 +114,7 @@ void MainWindow::showDataBase()
  * \param tabView
  * \param typeRequest
  */
-void MainWindow::ScreenDataFromDB(const QTableView *tabView, int typeRequest)
+void MainWindow::ScreenDataFromDB(QSqlTableModel* model, int requestIndex)
 {
 
     ///Тут должен быть код ДЗ
@@ -168,7 +125,7 @@ void MainWindow::ScreenDataFromDB(const QTableView *tabView, int typeRequest)
      * по всем элементам и приравнять их.
      * Также привяжем ширину заголовка к ширене окна.
     */
-    switch (typeRequest)
+    switch (requestIndex + 1)
     {
     case requestAllFilms:
     case requestHorrors:
@@ -199,6 +156,21 @@ void MainWindow::ScreenDataFromDB(const QTableView *tabView, int typeRequest)
     default:
         break;
     }
+
+
+    ui->tableView->setModel(model);             // Устанавливаем модель на TableView
+    ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
+    // Разрешаем выделение строк
+    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    // Устанавливаем режим выделения лишь одной строки в таблице
+    ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    // Устанавливаем размер колонок по содержимому
+    ui->tableView->resizeColumnsToContents();
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->tableView->horizontalHeader()->setStretchLastSection(true);
+
+    model->select(); // Делаем выборку данных из таблицы
+    ui->pb_clear->setEnabled(true);
 }
 
 /*!
@@ -238,11 +210,11 @@ void MainWindow::ReceiveStatusConnectionToDB(bool status)
  * \brief Метод обрабатывает ответ БД на поступивший запрос
  * \param err
  */
-void MainWindow::ReceiveStatusRequestToDB(QSqlError* err)
+void MainWindow::ReceiveStatusRequestToDB(QSqlError err)
 {
-    if(err->type() != QSqlError::NoError)
+    if(err.type() != QSqlError::NoError)
     {
-        QMessageBox::critical(0, tr("Ошибка запроса к БД!"), err->text(),
+        QMessageBox::critical(0, tr("Ошибка запроса к БД!"), err.text(),
                               QMessageBox::StandardButton::Close);
     }
     else dataBase->ReadAnswerFromDB(ui->cb_category->currentIndex());
