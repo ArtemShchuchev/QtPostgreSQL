@@ -77,10 +77,6 @@ void MainWindow::on_act_connect_triggered()
 
 /*!
  * \brief Обработчик кнопки "Получить"
- *
- * requestAllFilms = 1,
- * requestComedy   = 2,
- * requestHorrors  = 3
  */
 void MainWindow::on_pb_request_clicked()
 {
@@ -91,12 +87,10 @@ void MainWindow::on_pb_request_clicked()
      * и ужасы
     */
     ///Тут должен быть код ДЗ
-    auto req = [this](int reqIdx){dataBase->RequestToDB(reqIdx);};
-    auto future = QtConcurrent::run(req, ui->cb_category->currentIndex());
-    future.waitForFinished();
-
-    //setupModel("film", dataBase->getHeaders());
-    //showDataBase();
+    dataBase->RequestToDB(ui->cb_category->currentIndex());
+//    auto req = [this](int reqIdx){dataBase->RequestToDB(reqIdx);};
+//    auto future = QtConcurrent::run(req, ui->cb_category->currentIndex());
+    //future.waitForFinished();
 }
 
 /*!
@@ -114,7 +108,7 @@ void MainWindow::on_pb_clear_clicked()
  * \param tabView
  * \param typeRequest
  */
-void MainWindow::ScreenDataFromDB(QSqlTableModel* model, int requestIndex)
+void MainWindow::ScreenDataFromDB(const QVariant* model, int requestIndex)
 {
 
     ///Тут должен быть код ДЗ
@@ -128,49 +122,41 @@ void MainWindow::ScreenDataFromDB(QSqlTableModel* model, int requestIndex)
     switch (requestIndex + 1)
     {
     case requestAllFilms:
+        // Устанавливаем модель на TableView
+        ui->tableView->setModel(model->value<QSqlTableModel*>());
+        ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
+        // Разрешаем выделение строк
+        ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+        // Устанавливаем режим выделения лишь одной строки в таблице
+        ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+        // Устанавливаем размер колонок по содержимому
+        ui->tableView->resizeColumnsToContents();
+        ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        ui->tableView->horizontalHeader()->setStretchLastSection(true);
+
+        model->value<QSqlTableModel*>()->select(); // Делаем выборку данных из таблицы
+        ui->pb_clear->setEnabled(true);
+        break;
     case requestHorrors:
     case requestComedy:
-    {
-/*
-        ui->tb_result->setRowCount(widget->rowCount());
-        ui->tb_result->setColumnCount(widget->columnCount());
-        QStringList hdrs;
-        for(int i = 0; i < widget->columnCount(); ++i)
-        {
-            hdrs << widget->horizontalHeaderItem(i)->text();
-        }
-        ui->tb_result->setHorizontalHeaderLabels(hdrs);
+        ui->tableView->setModel(model->value<QSqlQueryModel*>());
+        //ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
+        // Разрешаем выделение строк
+        ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+        // Устанавливаем режим выделения лишь одной строки в таблице
+        ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+        // Устанавливаем размер колонок по содержимому
+        ui->tableView->resizeColumnsToContents();
+        ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        ui->tableView->horizontalHeader()->setStretchLastSection(true);
 
-        for(int i = 0; i<widget->rowCount(); ++i)
-        {
-            for(int j = 0; j<widget->columnCount(); ++j)
-            {
-                ui->tb_result->setItem(i,j, widget->item(i,j)->clone());
-            }
-        }
-
-        ui->tb_result->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-*/
+        //model.value<QSqlQueryModel*>()->select(); // Делаем выборку данных из таблицы
+        ui->pb_clear->setEnabled(true);
         break;
-    }
+
     default:
         break;
     }
-
-
-    ui->tableView->setModel(model);             // Устанавливаем модель на TableView
-    ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
-    // Разрешаем выделение строк
-    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    // Устанавливаем режим выделения лишь одной строки в таблице
-    ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
-    // Устанавливаем размер колонок по содержимому
-    ui->tableView->resizeColumnsToContents();
-    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui->tableView->horizontalHeader()->setStretchLastSection(true);
-
-    model->select(); // Делаем выборку данных из таблицы
-    ui->pb_clear->setEnabled(true);
 }
 
 /*!

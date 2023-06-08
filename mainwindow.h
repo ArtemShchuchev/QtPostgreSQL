@@ -24,7 +24,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void ScreenDataFromDB(QSqlTableModel* model, int requestIndex);
+    void ScreenDataFromDB(const QVariant *model, int requestIndex);
     void ReceiveStatusConnectionToDB(bool status);
     void ReceiveStatusRequestToDB(QSqlError err);
 

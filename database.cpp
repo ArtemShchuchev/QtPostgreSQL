@@ -9,6 +9,7 @@ DataBase::DataBase(QObject *parent)
         в котором настраивается подключение к БД.
     */
     db = new QSqlDatabase();
+    var = new QVariant();
 
     // Добавим БД используя стандартный драйвер PSQL и зададим имя.
     AddDataBase(POSTGRE_DRIVER, DB_NAME);
@@ -75,18 +76,12 @@ void DataBase::DisconnectFromDataBase(const QString& nameDb)
 void DataBase::RequestToDB(int requestIndex)
 {
     ///Тут должен быть код ДЗ
-
-    /*
-        Для получения категорий фильмов можн опользоваться запросом
-        SELECT title, description FROM film f
-        JOIN film_category fc on f.film_id = fc.film_id
-        JOIN category c on c.category_id = fc.category_id WHERE c.name = 'Comedy' ('Horror')
-    */
-//    QString request = "SELECT title, release_year, c.name  FROM film f "
-//                      "JOIN film_category fc on f.film_id = fc.film_id "
-//                      "JOIN category c on c.category_id  = fc.category_id";
     // Используем оператор switch для разделения запросов
-    QString request = "SELECT title, release_year FROM " + tableName_str;;
+    QString request =
+            "SELECT title, description FROM " +tableName_str + " f\
+            JOIN film_category fc on f.film_id = fc.film_id\
+            JOIN category c on c.category_id = fc.category_id WHERE c.name = ";
+
     switch (requestIndex + 1)
     {
     case requestAllFilms:
@@ -117,16 +112,28 @@ void DataBase::RequestToDB(int requestIndex)
 
     case requestComedy:
         qDebug() << "Получаю комедии";
+        request += "'Comedy'";
+        qModel = new QSqlQueryModel(this);
+        qModel->setQuery(request, *db);
+        qModel->setHeaderData(0, Qt::Horizontal, tr("Название фильма"));
+        qModel->setHeaderData(1, Qt::Horizontal, tr("Описание фильма"));
+
+        emit sig_SendStatusRequest(qModel->lastError());
         break;
+
     case requestHorrors:
         qDebug() << "Получаю ужасы";
+        request += "'Horror'";
+        qModel = new QSqlQueryModel(this);
+        qModel->setQuery(request, *db);
+        qModel->setHeaderData(0, Qt::Horizontal, tr("Название фильма"));
+        qModel->setHeaderData(1, Qt::Horizontal, tr("Описание фильма"));
+
+        emit sig_SendStatusRequest(qModel->lastError());
         break;
     default:
         break;
     }
-
-
-
 }
 
 /*!
@@ -135,7 +142,23 @@ void DataBase::RequestToDB(int requestIndex)
  */
 void DataBase::ReadAnswerFromDB(int requestIndex)
 {
-    emit sig_SendDataFromDB(model, requestIndex);
+
+
+    switch (requestIndex + 1)
+    {
+    case requestAllFilms:
+        var->setValue(model);
+        emit sig_SendDataFromDB(var, requestIndex);
+        break;
+
+    case requestComedy:
+    case requestHorrors:
+        var->setValue(qModel);
+        emit sig_SendDataFromDB(var, requestIndex);
+        break;
+    default:
+        break;
+    }
 }
 
 /*!

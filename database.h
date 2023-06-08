@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <QtConcurrent>
 #include <QMessageBox>
+#include <QVariant>
 
 #define POSTGRE_DRIVER "QPSQL"
 #define DB_NAME "MyDB"
@@ -55,7 +56,7 @@ public:
     void ConnectToDataBase(const QVector<QString>& dataForConnect);
 
 signals:
-   void sig_SendDataFromDB(QSqlTableModel* model, int typeR);
+   void sig_SendDataFromDB(const QVariant* model, int typeR);
    void sig_SendStatusConnection(bool);
    void sig_SendStatusRequest(QSqlError err);
 
@@ -63,6 +64,7 @@ private:
     QSqlDatabase* db;
     QSqlTableModel* model;
     QSqlQueryModel* qModel;
+    QVariant* var;
 
     QString tableName_str = "film";
     /*
