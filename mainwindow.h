@@ -3,9 +3,6 @@
 
 #include <QMainWindow>
 #include <QMessageBox>
-#include <QtConcurrent>
-#include <QSqlTableModel>
-#include <QFuture>
 #include "database.h"
 #include "dbdata.h"
 
