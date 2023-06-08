@@ -88,9 +88,6 @@ void MainWindow::on_pb_request_clicked()
     */
     ///Тут должен быть код ДЗ
     dataBase->RequestToDB(ui->cb_category->currentIndex());
-//    auto req = [this](int reqIdx){dataBase->RequestToDB(reqIdx);};
-//    auto future = QtConcurrent::run(req, ui->cb_category->currentIndex());
-    //future.waitForFinished();
 }
 
 /*!
@@ -99,7 +96,6 @@ void MainWindow::on_pb_request_clicked()
 void MainWindow::on_pb_clear_clicked()
 {
     ui->tableView->setModel(0);
-    //ui->tableView->setViewport(0);
     ui->pb_clear->setEnabled(false);
 }
 
@@ -108,55 +104,38 @@ void MainWindow::on_pb_clear_clicked()
  * \param tabView
  * \param typeRequest
  */
-void MainWindow::ScreenDataFromDB(const QVariant* model, int requestIndex)
+void MainWindow::ScreenDataFromDB(const QVariant* model)
 {
-
     ///Тут должен быть код ДЗ
+    ui->tableView->setModel(0);
+    ui->pb_clear->setEnabled(true);
 
-    /*
-     * По аналогии с формированием таблицы заполним таблицу
-     * которая распаложена на главной форме. Необходимо пройтись
-     * по всем элементам и приравнять их.
-     * Также привяжем ширину заголовка к ширене окна.
-    */
-    switch (requestIndex + 1)
+    switch (ui->cb_category->currentIndex() + 1)
     {
-    case requestAllFilms:
+        case requestAllFilms:
         // Устанавливаем модель на TableView
         ui->tableView->setModel(model->value<QSqlTableModel*>());
         ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
-        // Разрешаем выделение строк
-        ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-        // Устанавливаем режим выделения лишь одной строки в таблице
-        ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
-        // Устанавливаем размер колонок по содержимому
-        ui->tableView->resizeColumnsToContents();
-        ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        ui->tableView->horizontalHeader()->setStretchLastSection(true);
 
         model->value<QSqlTableModel*>()->select(); // Делаем выборку данных из таблицы
-        ui->pb_clear->setEnabled(true);
         break;
-    case requestHorrors:
-    case requestComedy:
+
+        case requestHorrors:
+        case requestComedy:
         ui->tableView->setModel(model->value<QSqlQueryModel*>());
-        //ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
-        // Разрешаем выделение строк
-        ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-        // Устанавливаем режим выделения лишь одной строки в таблице
-        ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
-        // Устанавливаем размер колонок по содержимому
-        ui->tableView->resizeColumnsToContents();
-        ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        ui->tableView->horizontalHeader()->setStretchLastSection(true);
-
-        //model.value<QSqlQueryModel*>()->select(); // Делаем выборку данных из таблицы
-        ui->pb_clear->setEnabled(true);
         break;
 
-    default:
+        default:
         break;
     }
+    // Разрешаем выделение строк
+    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    // Устанавливаем режим выделения лишь одной строки в таблице
+    ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    // Устанавливаем размер колонок по содержимому
+    ui->tableView->resizeColumnsToContents();
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->tableView->horizontalHeader()->setStretchLastSection(true);
 }
 
 /*!
@@ -179,7 +158,6 @@ void MainWindow::ReceiveStatusConnectionToDB(bool status)
     }
     else
     {
-
         dataBase->DisconnectFromDataBase(DB_NAME);
         ui->lb_statusConnect->setText("Отключено");
         ui->lb_statusConnect->setStyleSheet("color:red");

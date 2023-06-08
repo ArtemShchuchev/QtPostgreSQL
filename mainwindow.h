@@ -3,9 +3,6 @@
 
 #include <QMainWindow>
 #include <QMessageBox>
-#include <QtConcurrent>
-#include <QSqlTableModel>
-#include <QFuture>
 #include "database.h"
 #include "dbdata.h"
 
@@ -24,7 +21,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void ScreenDataFromDB(const QVariant *model, int requestIndex);
+    void ScreenDataFromDB(const QVariant *model);
     void ReceiveStatusConnectionToDB(bool status);
     void ReceiveStatusRequestToDB(QSqlError err);
 

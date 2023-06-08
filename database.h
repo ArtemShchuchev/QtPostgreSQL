@@ -1,15 +1,13 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include <QSqlTableModel>
-#include <QTableView>
 #include <QObject>
+#include <QSqlTableModel>
+#include <QSqlQueryModel>
 #include <QSqlError>
 #include <QSqlDatabase>
-#include <QSqlQuery>
 #include <QDebug>
 #include <QtConcurrent>
-#include <QMessageBox>
 #include <QVariant>
 
 #define POSTGRE_DRIVER "QPSQL"
@@ -56,7 +54,7 @@ public:
     void ConnectToDataBase(const QVector<QString>& dataForConnect);
 
 signals:
-   void sig_SendDataFromDB(const QVariant* model, int typeR);
+   void sig_SendDataFromDB(const QVariant* model);
    void sig_SendStatusConnection(bool);
    void sig_SendStatusRequest(QSqlError err);
 
