@@ -26,6 +26,8 @@ MainWindow::MainWindow(QWidget *parent)
     // сигнал о статусе сообщения, связываю со слотом изменения ПИ
     connect(dataBase, &DataBase::sig_SendStatusConnection, this, &MainWindow::ReceiveStatusConnectionToDB);
     connect(dataBase, &DataBase::sig_SendStatusRequest, this, &MainWindow::ReceiveStatusRequestToDB);
+
+    connect(this, &MainWindow::sig_tableShow, this, [&](QFuture<QTableView*> future){ if (future.isFinished()) future.result()->show(); });
 }
 
 MainWindow::~MainWindow()
@@ -63,7 +65,8 @@ void MainWindow::on_act_connect_triggered()
        ui->lb_statusConnect->setText("Подключение");
        ui->lb_statusConnect->setStyleSheet("color : black");
 
-       dataBase->ConnectToDataBase(connectData->getData());
+       auto conDb = [&]{ dataBase->ConnectToDataBase(connectData->getData()); };
+       auto runConnect = QtConcurrent::run(conDb);
     }
     else
     {
@@ -87,7 +90,8 @@ void MainWindow::on_pb_request_clicked()
      * и ужасы
     */
     ///Тут должен быть код ДЗ
-    dataBase->RequestToDB(ui->cb_category->currentIndex());
+    auto reqDb = [&]{ dataBase->RequestToDB(ui->cb_category->currentIndex()); };
+    auto runRequest = QtConcurrent::run(reqDb);
 }
 
 /*!
@@ -107,35 +111,41 @@ void MainWindow::on_pb_clear_clicked()
 void MainWindow::ScreenDataFromDB(const QVariant* model)
 {
     ///Тут должен быть код ДЗ
-    ui->tableView->setModel(0);
     ui->pb_clear->setEnabled(true);
+    auto viewTab = [&]{
+        ui->tableView->setModel(0);
 
-    switch (ui->cb_category->currentIndex() + 1)
-    {
-        case requestAllFilms:
-        // Устанавливаем модель на TableView
-        ui->tableView->setModel(model->value<QSqlTableModel*>());
-        ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
+        switch (ui->cb_category->currentIndex() + 1)
+        {
+            case requestAllFilms:
+            // Устанавливаем модель на TableView
+            ui->tableView->setModel(model->value<QSqlTableModel*>());
+            ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
 
-        model->value<QSqlTableModel*>()->select(); // Делаем выборку данных из таблицы
-        break;
+            model->value<QSqlTableModel*>()->select(); // Делаем выборку данных из таблицы
+            break;
 
-        case requestHorrors:
-        case requestComedy:
-        ui->tableView->setModel(model->value<QSqlQueryModel*>());
-        break;
+            case requestHorrors:
+            case requestComedy:
+            ui->tableView->setModel(model->value<QSqlQueryModel*>());
+            break;
 
-        default:
-        break;
-    }
-    // Разрешаем выделение строк
-    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    // Устанавливаем режим выделения лишь одной строки в таблице
-    ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
-    // Устанавливаем размер колонок по содержимому
-    ui->tableView->resizeColumnsToContents();
-    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui->tableView->horizontalHeader()->setStretchLastSection(true);
+            default:
+            break;
+        }
+        // Разрешаем выделение строк
+        ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+        // Устанавливаем режим выделения лишь одной строки в таблице
+        ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+        // Устанавливаем размер колонок по содержимому
+        ui->tableView->resizeColumnsToContents();
+        ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        ui->tableView->horizontalHeader()->setStretchLastSection(true);
+
+        return ui->tableView;
+    };
+    auto runView = QtConcurrent::run(viewTab);
+    emit sig_tableShow(runView);
 }
 
 /*!

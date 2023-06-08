@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QTableView>
 #include "database.h"
 #include "dbdata.h"
 
@@ -33,6 +34,7 @@ private slots:
 
 signals:
     //void sig_RequestToDb(QString request);
+    void sig_tableShow(QFuture<QTableView*>);
 
 private:
     Ui::MainWindow* ui;

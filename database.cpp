@@ -52,8 +52,7 @@ void DataBase::ConnectToDataBase(const QVector<QString> &data)
 
     ///Тут должен быть код ДЗ
     //Для подключения к БД используется метод open(), который возвращает true в случае успешного подключения.
-    auto connection = [this]{ emit sig_SendStatusConnection(db->open()); };
-    auto future = QtConcurrent::run(connection);
+    emit sig_SendStatusConnection(db->open());
 }
 
 /*!
@@ -157,17 +156,17 @@ void DataBase::ReadAnswerFromDB(int requestIndex)
     {
     case requestAllFilms:
         var->setValue(model);
-        emit sig_SendDataFromDB(var);
         break;
 
     case requestComedy:
     case requestHorrors:
         var->setValue(qModel);
-        emit sig_SendDataFromDB(var);
         break;
     default:
         break;
     }
+
+    if (var->isValid()) emit sig_SendDataFromDB(var);
 }
 
 /*!
