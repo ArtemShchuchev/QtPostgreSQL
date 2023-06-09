@@ -19,15 +19,10 @@ MainWindow::MainWindow(QWidget *parent)
     dataBase = new DataBase(this);
 
 
-    // Соединяем сигнал, который передает ответ от БД с методом, который отображает ответ в ПИ
-    connect(dataBase, &DataBase::sig_SendDataFromDB, this, &MainWindow::ScreenDataFromDB);
-
     // Сигнал для подключения к БД
     // сигнал о статусе сообщения, связываю со слотом изменения ПИ
     connect(dataBase, &DataBase::sig_SendStatusConnection, this, &MainWindow::ReceiveStatusConnectionToDB);
     connect(dataBase, &DataBase::sig_SendStatusRequest, this, &MainWindow::ReceiveStatusRequestToDB);
-
-    connect(this, &MainWindow::sig_tableShow, this, [&](QFuture<QTableView*> future){ if (future.isFinished()) future.result()->show(); });
 }
 
 MainWindow::~MainWindow()
@@ -90,8 +85,9 @@ void MainWindow::on_pb_request_clicked()
      * и ужасы
     */
     ///Тут должен быть код ДЗ
-    auto reqDb = [&]{ dataBase->RequestToDB(ui->cb_category->currentIndex()); };
-    auto runRequest = QtConcurrent::run(reqDb);
+    dataBase->RequestToDB(ui->cb_category->currentIndex());
+    //auto reqDb = [&]{ dataBase->RequestToDB(ui->cb_category->currentIndex()); };
+    //auto runRequest = QtConcurrent::run(reqDb);
 }
 
 /*!
@@ -112,40 +108,34 @@ void MainWindow::ScreenDataFromDB(const QVariant* model)
 {
     ///Тут должен быть код ДЗ
     ui->pb_clear->setEnabled(true);
-    auto viewTab = [&]{
-        ui->tableView->setModel(0);
+    ui->tableView->setModel(0);
 
-        switch (ui->cb_category->currentIndex() + 1)
-        {
-            case requestAllFilms:
-            // Устанавливаем модель на TableView
-            ui->tableView->setModel(model->value<QSqlTableModel*>());
-            ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
+    switch (ui->cb_category->currentIndex() + 1)
+    {
+        case requestAllFilms:
+        // Устанавливаем модель на TableView
+        ui->tableView->setModel(model->value<QSqlTableModel*>());
+        ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
 
-            model->value<QSqlTableModel*>()->select(); // Делаем выборку данных из таблицы
-            break;
+        model->value<QSqlTableModel*>()->select(); // Делаем выборку данных из таблицы
+        break;
 
-            case requestHorrors:
-            case requestComedy:
-            ui->tableView->setModel(model->value<QSqlQueryModel*>());
-            break;
+        case requestHorrors:
+        case requestComedy:
+        ui->tableView->setModel(model->value<QSqlQueryModel*>());
+        break;
 
-            default:
-            break;
-        }
-        // Разрешаем выделение строк
-        ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-        // Устанавливаем режим выделения лишь одной строки в таблице
-        ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
-        // Устанавливаем размер колонок по содержимому
-        ui->tableView->resizeColumnsToContents();
-        ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        ui->tableView->horizontalHeader()->setStretchLastSection(true);
-
-        return ui->tableView;
-    };
-    auto runView = QtConcurrent::run(viewTab);
-    emit sig_tableShow(runView);
+        default:
+        break;
+    }
+    // Разрешаем выделение строк
+    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    // Устанавливаем режим выделения лишь одной строки в таблице
+    ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    // Устанавливаем размер колонок по содержимому
+    ui->tableView->resizeColumnsToContents();
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->tableView->horizontalHeader()->setStretchLastSection(true);
 }
 
 /*!
@@ -184,12 +174,12 @@ void MainWindow::ReceiveStatusConnectionToDB(bool status)
  * \brief Метод обрабатывает ответ БД на поступивший запрос
  * \param err
  */
-void MainWindow::ReceiveStatusRequestToDB(QSqlError err)
+void MainWindow::ReceiveStatusRequestToDB(const QString& err)
 {
-    if(err.type() != QSqlError::NoError)
+    if(err != "")
     {
-        QMessageBox::critical(0, tr("Ошибка запроса к БД!"), err.text(),
+        QMessageBox::critical(0, tr("Ошибка запроса к БД!"), err,
                               QMessageBox::StandardButton::Close);
     }
-    else dataBase->ReadAnswerFromDB(ui->cb_category->currentIndex());
+    else ScreenDataFromDB(dataBase->getVarModel());
 }

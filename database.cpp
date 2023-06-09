@@ -18,6 +18,7 @@ DataBase::DataBase(QObject *parent)
 DataBase::~DataBase()
 {
     delete db;
+    delete var;
 }
 
 /*!
@@ -80,6 +81,7 @@ void DataBase::RequestToDB(int requestIndex)
             JOIN film_category fc on f.film_id = fc.film_id\
             JOIN category c on c.category_id = fc.category_id WHERE c.name = ";
 
+    QString err;
     // Используем оператор switch для разделения запросов
     switch (requestIndex + 1)
     {
@@ -110,7 +112,8 @@ void DataBase::RequestToDB(int requestIndex)
             model->setSort(1, Qt::AscendingOrder);
 
             // Если возникает какая либо ошибка, ее можно посмотреть при помощи метода lastError.
-            emit sig_SendStatusRequest(model->lastError());
+            err = model->lastError().text();
+            var->setValue(model);
             break;
         }
 
@@ -124,7 +127,8 @@ void DataBase::RequestToDB(int requestIndex)
             qModel->setHeaderData(1, Qt::Horizontal, tr("Описание фильма"));
             qModel->sort(1, Qt::AscendingOrder);
 
-            emit sig_SendStatusRequest(qModel->lastError());
+            err = qModel->lastError().text();
+            var->setValue(qModel);
             break;
         }
 
@@ -138,35 +142,14 @@ void DataBase::RequestToDB(int requestIndex)
             qModel->setHeaderData(1, Qt::Horizontal, tr("Описание фильма"));
             qModel->sort(1, Qt::AscendingOrder);
 
-            emit sig_SendStatusRequest(qModel->lastError());
+            err = qModel->lastError().text();
+            var->setValue(qModel);
             break;
         }
         default:
         break;
     }
-}
-
-/*!
- * \brief Метод возвращает модель таблицы БД
- * \param requestIndex - индекс SQL запроса
- */
-void DataBase::ReadAnswerFromDB(int requestIndex)
-{
-    switch (requestIndex + 1)
-    {
-    case requestAllFilms:
-        var->setValue(model);
-        break;
-
-    case requestComedy:
-    case requestHorrors:
-        var->setValue(qModel);
-        break;
-    default:
-        break;
-    }
-
-    if (var->isValid()) emit sig_SendDataFromDB(var);
+    emit sig_SendStatusRequest(err);
 }
 
 /*!
@@ -175,4 +158,9 @@ void DataBase::ReadAnswerFromDB(int requestIndex)
 QSqlError DataBase::GetLastError()
 {
     return db->lastError();
+}
+
+QVariant *DataBase::getVarModel()
+{
+    return var;
 }

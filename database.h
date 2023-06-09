@@ -7,7 +7,6 @@
 #include <QSqlError>
 #include <QSqlDatabase>
 #include <QDebug>
-#include <QtConcurrent>
 #include <QVariant>
 
 #define POSTGRE_DRIVER "QPSQL"
@@ -49,14 +48,13 @@ public:
     void AddDataBase(const QString& driver, const QString& nameDB = "");
     void DisconnectFromDataBase(const QString& nameDb = "");
     void RequestToDB(int requestIndex);
-    void ReadAnswerFromDB(int requestIndex);
-    QSqlError GetLastError(void);
     void ConnectToDataBase(const QVector<QString>& dataForConnect);
+    QSqlError GetLastError(void);
+    QVariant* getVarModel();
 
 signals:
-   void sig_SendDataFromDB(const QVariant* model);
    void sig_SendStatusConnection(bool);
-   void sig_SendStatusRequest(QSqlError err);
+   void sig_SendStatusRequest(const QString& err);
 
 private:
     QSqlDatabase* db;

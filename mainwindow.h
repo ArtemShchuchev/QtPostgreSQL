@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QTableView>
+#include <QtConcurrent>
 #include "database.h"
 #include "dbdata.h"
 
@@ -24,7 +25,7 @@ public:
 public slots:
     void ScreenDataFromDB(const QVariant *model);
     void ReceiveStatusConnectionToDB(bool status);
-    void ReceiveStatusRequestToDB(QSqlError err);
+    void ReceiveStatusRequestToDB(const QString &err);
 
 private slots:
     void on_act_addData_triggered();
@@ -33,8 +34,6 @@ private slots:
     void on_pb_clear_clicked();
 
 signals:
-    //void sig_RequestToDb(QString request);
-    void sig_tableShow(QFuture<QTableView*>);
 
 private:
     Ui::MainWindow* ui;
