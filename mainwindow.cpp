@@ -37,7 +37,7 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_act_addData_triggered()
 {
-    // Отобразим диалоговое окно. Какой метод нужно использовать?
+    // Отобразим диалоговое окно.
     connectData->show();
 }
 
@@ -79,12 +79,16 @@ void MainWindow::on_act_connect_triggered()
 void MainWindow::on_pb_request_clicked()
 {
     /*
-     * В случае если ответ получен, то мы его читаем
-     * в противном случае выводим ошибку. Сейчас мы разберем
-     * получение всех фильмов. А дома вы получите отдельно комедии
-     * и ужасы
+     * ВОПРОС 1:
+     * -----------------------------------------------------------
+     * Сейчас запрос к БД делается в том же потоке, работает без
+     * проблем, все быстро и четко, хотя конечно надо бы отправить
+     * в другой поток, в случае проблем с БД -> программа НЕ зависнет.
+     *
+     * Но, если закоментить строчку и раскоментить две ниже, программа
+     * тоже работает, но в "3 Вывод приложения" при каждом запросе к БД
+     * ругается!
     */
-    ///Тут должен быть код ДЗ
     dataBase->RequestToDB(ui->cb_category->currentIndex());
     //auto reqDb = [&]{ dataBase->RequestToDB(ui->cb_category->currentIndex()); };
     //auto runRequest = QtConcurrent::run(reqDb);
@@ -106,9 +110,25 @@ void MainWindow::on_pb_clear_clicked()
  */
 void MainWindow::ScreenDataFromDB(const QVariant* model)
 {
-    ///Тут должен быть код ДЗ
     ui->pb_clear->setEnabled(true);
     ui->tableView->setModel(0);
+
+    /*
+     * ВОПРОС 2:
+     * ------------------------------------------------------
+     * Видимо на формирование таблицы (особенно ВСЕХ фильмов)
+     * программа заметно "призадумывается", как бы поместить
+     * весь этот код в другой поток?
+     * Думаю тормозит он в этот момент: ui->tableView->setModel...
+     * Как я понимаю - этот код не может выполняться в потоке
+     * отличном от потока родителя (ui)? Ну может можно его
+     * выполнить в другом потоке, а затем объект вернуть в
+     * этот поток? Или может я вообще не туда думаю?
+     *
+     * Я перепробовал 1000 вариантов, но не разу не угодал))
+     * программа либо падала при запросе, либо так же сыпала
+     * предупреждениями, (что то про потоки) как в вопросе 1.
+    */
 
     switch (ui->cb_category->currentIndex() + 1)
     {
@@ -162,10 +182,9 @@ void MainWindow::ReceiveStatusConnectionToDB(bool status)
         ui->lb_statusConnect->setText("Отключено");
         ui->lb_statusConnect->setStyleSheet("color:red");
 
-        QMessageBox::critical(0, tr("Ошибка подключения к БД!"), "База данных \""
-                              + connectData->getData().at(dbName)
-                              + "\" - НЕ подключена!\n\n"
-                              + dataBase->GetLastError().text(),
+        QMessageBox::critical(0, tr("Ошибка подключения к БД!"),
+                              QString("База данных \"%1\" - НЕ подключена!\n\n%2")
+                              .arg(connectData->getData().at(dbName), dataBase->GetLastError().text()),
                               QMessageBox::StandardButton::Close);
     }
 }
