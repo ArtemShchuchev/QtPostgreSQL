@@ -29,7 +29,7 @@ set(PROJECT_SOURCES
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(08_PreDataBase
+    qt_add_executable(${PROJECT_NAME}
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
     )
@@ -40,13 +40,13 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 # For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
-        add_library(08_PreDataBase SHARED
+        add_library(${PROJECT_NAME} SHARED
             ${PROJECT_SOURCES}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
-        add_executable(08_PreDataBase
+        add_executable(${PROJECT_NAME}
             ${PROJECT_SOURCES}
         )
     endif()
@@ -54,7 +54,7 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")    # Для Windows
     target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/PG_Libs)
-    target_link_libraries(08_PreDataBase PRIVATE    Qt${QT_VERSION_MAJOR}::Widgets
+    target_link_libraries(${PROJECT_NAME} PRIVATE   Qt${QT_VERSION_MAJOR}::Widgets
                                                     Qt${QT_VERSION_MAJOR}::Concurrent
                                                     Qt${QT_VERSION_MAJOR}::Sql
                                                     libcrypto-3-x64
@@ -63,7 +63,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")    # Для Windows
                                                     libpq
                                                     libssl-3-x64)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")  # Для Linux
-    target_link_libraries(08_PreDataBase PRIVATE    Qt${QT_VERSION_MAJOR}::Widgets
+    target_link_libraries(${PROJECT_NAME} PRIVATE   Qt${QT_VERSION_MAJOR}::Widgets
                                                     Qt${QT_VERSION_MAJOR}::Concurrent
                                                     Qt${QT_VERSION_MAJOR}::Sql)
 else()
@@ -71,7 +71,8 @@ else()
 endif()
 
 
-set_target_properties(08_PreDataBase PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	OUTPUT_NAME "database"
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
@@ -80,5 +81,5 @@ set_target_properties(08_PreDataBase PROPERTIES
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(08_PreDataBase)
+    qt_finalize_executable(${PROJECT_NAME})
 endif()
