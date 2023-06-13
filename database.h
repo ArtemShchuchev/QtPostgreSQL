@@ -59,6 +59,7 @@ signals:
 
 private:
    void AddDataBase(const QString& driver, const QString& nameDB);
+   void deleteModels();
 
    QSqlDatabase* db;
    QSqlTableModel* model;

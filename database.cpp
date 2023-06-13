@@ -14,25 +14,13 @@ DataBase::DataBase(QObject *parent,
 
     // Добавим БД используя стандартный драйвер PSQL и зададим имя.
     AddDataBase(driver, nameDB);
-
-    /*
-     * Можно так же динамически выделять память под "Модели" в методе запроса, но
-     * в качесве родителя должен быть указан (0), не (this), а также перед каждым
-     * вызовом метода (в начале) проверять наличие уже созданных моделей и освобождать
-     * память (if (model) delete model; model = nullptr;), только после делать (new).
-    */
-    // QSqlTableModel: можно создать только после полного создания объекта
-    // базы (QSqlDatabase) т.е. после подключения драйверов и имени базы
-    model = new QSqlTableModel(0, *db);
-    qModel = new QSqlQueryModel();
 }
 
 DataBase::~DataBase()
 {
     delete db;
     delete modelVariant;
-    delete model;
-    delete qModel;
+    deleteModels();
 }
 
 /*!
@@ -49,6 +37,18 @@ void DataBase::AddDataBase(const QString &driver, const QString &nameDB)
         В объекте может храниться несколько подключений, они различаются именами.
     */
     *db = QSqlDatabase::addDatabase(driver, nameDB);
+}
+
+void DataBase::deleteModels()
+{
+    if (model){
+        delete model;
+        model = nullptr;
+    }
+    if (qModel){
+        delete qModel;
+        qModel = nullptr;
+    }
 }
 
 /*!
@@ -89,6 +89,15 @@ void DataBase::DisconnectFromDataBase(const QString& nameDb)
  */
 void DataBase::RequestToDB(int requestIndex)
 {
+    /*
+     * Получается, самый правильный способ!
+     *
+     * Можно так же динамически выделять память под "Модели" в методе запроса, но
+     * в качесве родителя должен быть указан (0), не (this), а также перед каждым
+     * вызовом метода (в начале) проверять наличие уже созданных моделей и освобождать
+     * память (if (model) delete model; model = nullptr;), только после делать (new).
+    */
+    deleteModels();
     ///Тут должен быть код ДЗ
     QString request =
             "SELECT title, description FROM " + tableName_str + " f\
@@ -106,6 +115,9 @@ void DataBase::RequestToDB(int requestIndex)
              * с установкой имени таблицы в базе данных, по которому
              * будет производится обращение в таблице
              * */
+            // QSqlTableModel: можно создать только после полного создания объекта
+            // базы (QSqlDatabase) т.е. после подключения драйверов и имени базы
+            model = new QSqlTableModel(0, *db);
             model->setTable(tableName_str);
             model->setEditStrategy(QSqlTableModel::OnManualSubmit);
 
@@ -133,6 +145,7 @@ void DataBase::RequestToDB(int requestIndex)
         case requestComedy:
         {
             //qDebug() << "Получаю комедии";
+            qModel = new QSqlQueryModel();
             request += "'Comedy'";
             qModel->setQuery(request, *db);
             qModel->setHeaderData(0, Qt::Horizontal, tr("Название фильма"));
@@ -147,6 +160,7 @@ void DataBase::RequestToDB(int requestIndex)
         case requestHorrors:
         {
             //qDebug() << "Получаю ужасы";
+            qModel = new QSqlQueryModel();
             request += "'Horror'";
             qModel->setQuery(request, *db);
             qModel->setHeaderData(0, Qt::Horizontal, tr("Название фильма"));

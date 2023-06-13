@@ -96,24 +96,23 @@ void MainWindow::on_pb_clear_clicked()
  * \param tabView
  * \param typeRequest
  */
-void MainWindow::ScreenDataFromDB(const QVariant* model)
+void MainWindow::ScreenDataFromDB(const QVariant* modelVariant)
 {
     ui->pb_clear->setEnabled(true);
-    ui->tableView->setModel(0);
 
     switch (ui->cb_category->currentIndex() + 1)
     {
         case requestAllFilms:
         // Устанавливаем модель на TableView
-        ui->tableView->setModel(model->value<QSqlTableModel*>());
+        ui->tableView->setModel(modelVariant->value<QSqlTableModel*>());
         ui->tableView->hideColumn(0);               // Скрываем колонку (0) с id
 
-        model->value<QSqlTableModel*>()->select(); // Делаем выборку данных из таблицы
+        modelVariant->value<QSqlTableModel*>()->select(); // Делаем выборку данных из таблицы
         break;
 
         case requestHorrors:
         case requestComedy:
-        ui->tableView->setModel(model->value<QSqlQueryModel*>());
+        ui->tableView->setModel(modelVariant->value<QSqlQueryModel*>());
         break;
 
         default:
