@@ -2,7 +2,7 @@
 
 DataBase::DataBase(QObject *parent,
                    const QString& driver, const QString& nameDB)
-    : QObject{parent}
+    : QObject{parent}, model(nullptr), qModel(nullptr)
 {
     /*
         Выделяем память под объекты классов.
@@ -10,20 +10,29 @@ DataBase::DataBase(QObject *parent,
         в котором настраивается подключение к БД.
     */
     db = new QSqlDatabase();
-    var = new QVariant();
+    modelVariant = new QVariant();
 
     // Добавим БД используя стандартный драйвер PSQL и зададим имя.
     AddDataBase(driver, nameDB);
 
-    // выделяю память под модели
-    model = new QSqlTableModel(this, *db);
-    qModel = new QSqlQueryModel(this);
+    /*
+     * Можно так же динамически выделять память под "Модели" в методе запроса, но
+     * в качесве родителя должен быть указан (0), не (this), а также перед каждым
+     * вызовом метода (в начале) проверять наличие уже созданных моделей и освобождать
+     * память (if (model) delete model; model = nullptr;), только после делать (new).
+    */
+    // QSqlTableModel: можно создать только после полного создания объекта
+    // базы (QSqlDatabase) т.е. после подключения драйверов и имени базы
+    model = new QSqlTableModel(0, *db);
+    qModel = new QSqlQueryModel();
 }
 
 DataBase::~DataBase()
 {
     delete db;
-    delete var;
+    delete modelVariant;
+    delete model;
+    delete qModel;
 }
 
 /*!
@@ -97,7 +106,6 @@ void DataBase::RequestToDB(int requestIndex)
              * с установкой имени таблицы в базе данных, по которому
              * будет производится обращение в таблице
              * */
-            //model = new QSqlTableModel(this, *db);
             model->setTable(tableName_str);
             model->setEditStrategy(QSqlTableModel::OnManualSubmit);
 
@@ -118,7 +126,7 @@ void DataBase::RequestToDB(int requestIndex)
 
             // Если возникает какая либо ошибка, ее можно посмотреть при помощи метода lastError.
             err = model->lastError().text();
-            var->setValue(model);
+            modelVariant->setValue(model);
             break;
         }
 
@@ -126,14 +134,13 @@ void DataBase::RequestToDB(int requestIndex)
         {
             //qDebug() << "Получаю комедии";
             request += "'Comedy'";
-            //qModel = new QSqlQueryModel(this);
             qModel->setQuery(request, *db);
             qModel->setHeaderData(0, Qt::Horizontal, tr("Название фильма"));
             qModel->setHeaderData(1, Qt::Horizontal, tr("Описание фильма"));
             qModel->sort(1, Qt::AscendingOrder);
 
             err = qModel->lastError().text();
-            var->setValue(qModel);
+            modelVariant->setValue(qModel);
             break;
         }
 
@@ -141,16 +148,16 @@ void DataBase::RequestToDB(int requestIndex)
         {
             //qDebug() << "Получаю ужасы";
             request += "'Horror'";
-            //qModel = new QSqlQueryModel(this);
             qModel->setQuery(request, *db);
             qModel->setHeaderData(0, Qt::Horizontal, tr("Название фильма"));
             qModel->setHeaderData(1, Qt::Horizontal, tr("Описание фильма"));
             qModel->sort(1, Qt::AscendingOrder);
 
             err = qModel->lastError().text();
-            var->setValue(qModel);
+            modelVariant->setValue(qModel);
             break;
         }
+
         default:
         break;
     }
@@ -167,5 +174,5 @@ QSqlError DataBase::GetLastError()
 
 QVariant *DataBase::getVarModel()
 {
-    return var;
+    return modelVariant;
 }

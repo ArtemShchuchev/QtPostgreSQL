@@ -63,7 +63,7 @@ private:
    QSqlDatabase* db;
    QSqlTableModel* model;
    QSqlQueryModel* qModel;
-   QVariant* var;
+   QVariant* modelVariant;
 
    QString tableName_str = "film";
    /*
