@@ -1,6 +1,7 @@
 #include "database.h"
 
-DataBase::DataBase(QObject *parent)
+DataBase::DataBase(QObject *parent,
+                   const QString& driver, const QString& nameDB)
     : QObject{parent}
 {
     /*
@@ -12,7 +13,11 @@ DataBase::DataBase(QObject *parent)
     var = new QVariant();
 
     // Добавим БД используя стандартный драйвер PSQL и зададим имя.
-    AddDataBase(POSTGRE_DRIVER, DB_NAME);
+    AddDataBase(driver, nameDB);
+
+    // выделяю память под модели
+    model = new QSqlTableModel(this, *db);
+    qModel = new QSqlQueryModel(this);
 }
 
 DataBase::~DataBase()
@@ -92,7 +97,7 @@ void DataBase::RequestToDB(int requestIndex)
              * с установкой имени таблицы в базе данных, по которому
              * будет производится обращение в таблице
              * */
-            model = new QSqlTableModel(this, *db);
+            //model = new QSqlTableModel(this, *db);
             model->setTable(tableName_str);
             model->setEditStrategy(QSqlTableModel::OnManualSubmit);
 
@@ -121,7 +126,7 @@ void DataBase::RequestToDB(int requestIndex)
         {
             //qDebug() << "Получаю комедии";
             request += "'Comedy'";
-            qModel = new QSqlQueryModel(this);
+            //qModel = new QSqlQueryModel(this);
             qModel->setQuery(request, *db);
             qModel->setHeaderData(0, Qt::Horizontal, tr("Название фильма"));
             qModel->setHeaderData(1, Qt::Horizontal, tr("Описание фильма"));
@@ -136,7 +141,7 @@ void DataBase::RequestToDB(int requestIndex)
         {
             //qDebug() << "Получаю ужасы";
             request += "'Horror'";
-            qModel = new QSqlQueryModel(this);
+            //qModel = new QSqlQueryModel(this);
             qModel->setQuery(request, *db);
             qModel->setHeaderData(0, Qt::Horizontal, tr("Название фильма"));
             qModel->setHeaderData(1, Qt::Horizontal, tr("Описание фильма"));

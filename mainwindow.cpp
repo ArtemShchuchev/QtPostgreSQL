@@ -99,9 +99,9 @@ void MainWindow::on_pb_request_clicked()
      * Тока для QSqlTableModel обязательно нужно, чтобы был полностью создан объект базы
      *  данных(т.е. нужно выделять память после добавления драйверов в БД)
     */
-    dataBase->RequestToDB(ui->cb_category->currentIndex());
-    //auto reqDb = [&]{ dataBase->RequestToDB(ui->cb_category->currentIndex()); };
-    //auto runRequest = QtConcurrent::run(reqDb);
+    //dataBase->RequestToDB(ui->cb_category->currentIndex());
+    auto reqDb = [&]{ dataBase->RequestToDB(ui->cb_category->currentIndex()); };
+    auto runRequest = QtConcurrent::run(reqDb);
 }
 
 /*!

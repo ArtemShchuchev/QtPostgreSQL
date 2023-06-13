@@ -43,9 +43,10 @@ class DataBase : public QObject
     Q_OBJECT
 
 public:
-    explicit DataBase(QObject *parent = nullptr);
+    explicit DataBase(QObject *parent = nullptr,
+                      const QString& driver = POSTGRE_DRIVER, const QString& nameDB = DB_NAME);
     ~DataBase();
-    void AddDataBase(const QString& driver, const QString& nameDB = "");
+
     void DisconnectFromDataBase(const QString& nameDb = "");
     void RequestToDB(int requestIndex);
     void ConnectToDataBase(const QVector<QString>& dataForConnect);
@@ -57,13 +58,15 @@ signals:
    void sig_SendStatusRequest(const QString& err);
 
 private:
-    QSqlDatabase* db;
-    QSqlTableModel* model;
-    QSqlQueryModel* qModel;
-    QVariant* var;
+   void AddDataBase(const QString& driver, const QString& nameDB);
 
-    QString tableName_str = "film";
-    /*
+   QSqlDatabase* db;
+   QSqlTableModel* model;
+   QSqlQueryModel* qModel;
+   QVariant* var;
+
+   QString tableName_str = "film";
+   /*
         film_id - ИД записи;
         title - название фильма;
         description - описание фильма;
